@@ -12,10 +12,11 @@ outOfBounds (x, y)
 
 initialState :: Coord -> Coord -> [Coord] -> State
 initialState r c cb
-    | r == c = ((-1, -1), (-1, -1), [])
-    | elem r cb = ((-1, -1), (-1, -1), [])
-    | elem c cb = ((-1, -1), (-1, -1), [])
-    | outOfBounds r = ((-1, -1), (-1, -1), [])
-    | outOfBounds c = ((-1, -1), (-1, -1), [])
-    | or (map outOfBounds cb) = ((-1, -1), (-1, -1), [])
-    | otherwise = (r, c, cb)
+    | r == c                  = invalidState
+    | elem r cb               = invalidState
+    | elem c cb               = invalidState
+    | outOfBounds r           = invalidState
+    | outOfBounds c           = invalidState
+    | or (map outOfBounds cb) = invalidState
+    | otherwise               = (r, c, cb)
+        where invalidState = ((-1, -1), (-1, -1), [])
