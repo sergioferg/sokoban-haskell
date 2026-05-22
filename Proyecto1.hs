@@ -41,3 +41,14 @@ isValidMove ((r1, r2), (c1, c2), cb) m
         rf = (r1+m1, r2+m2)
         c = (c1, c2)
         rf2 = (r1+(m1*2), r2+(m2*2))
+
+applyMove :: State -> Move -> State
+applyMove ((r1, r2), (c1, c2), cb) m
+    | rf `eq` c =  (rf, rf2, cb)
+    | elem rf cb =  (rf, c, rf2 : filter (/= rf) cb) --elementos distintos a rf se quedan, el igual se reemplaza por rf2--
+    | otherwise = (rf, c, cb)
+    where
+        (m1, m2) = moveOffset m
+        rf = (r1+m1, r2+m2)
+        c = (c1, c2)
+        rf2 = (r1+(m1*2), r2+(m2*2))
