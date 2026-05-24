@@ -55,7 +55,7 @@ applyMove ((r1, r2), (c1, c2), cb) m
 
 
 metaAlcanzada :: State -> Bool
-metaAlcanzada (_, coordObjetivo, _) = coordObjetivo == (5, 5)
+metaAlcanzada (_, coord, _) = coord == (5, 5)
 
 
 solveWarehouse :: State -> (Int, [State])
@@ -63,14 +63,15 @@ solveWarehouse inicial = bfs [[inicial]] [inicial]
     where 
         bfs :: [[State]] -> [State] -> (Int, [State])
         bfs [] _ = (0, [])
-        
-        bfs metaAlcanzada actual = (length caminoActual - 1, reverse caminoActual) --segun gemini meter al frente los elementos es mas rapido, por eso uso reverse para imprimir bien
+        bfs (estadoActual : resto) camino -- la defino así sin razón real por ahora
+        | bfs metaAlcanzada actual = (length caminoActual - 1, reverse caminoActual) --segun gemini meter al frente los elementos es mas rapido, por eso uso reverse para imprimir bien
 
         where
             movimientos = [U, D, L, R] 
             movValidos = filter (isValidMove estadoActual) movimientos -- movimientos validos de los 4 posibles
             estadosResultantes = map (applyMove estadoActual) movValidos --estados nuevos tras hacer las 4 direcciones
             estadosNuevos = filter (`notElem` visitados) estadosResultantes --movimientos para no caer en bucle
+            nuevosCaminos = map (: caminoActual) estadosNuevos --unimos el camino con las distintas posibilidades
         
 
 
