@@ -57,22 +57,31 @@ applyMove ((r1, r2), (c1, c2), cb) m
 metaAlcanzada :: State -> Bool
 metaAlcanzada (_, coord, _) = coord == (5, 5)
 
-
 solveWarehouse :: State -> (Int, [State])
 solveWarehouse inicial = bfs [[inicial]] [inicial]
     where 
+        -- bfs :: Cola -> Visitados -> Resultado
         bfs :: [[State]] -> [State] -> (Int, [State])
         bfs [] _ = (0, [])
-        bfs (estadoActual : resto) camino -- la defino así sin razón real por ahora
-        | bfs metaAlcanzada actual = (length caminoActual - 1, reverse caminoActual) --segun gemini meter al frente los elementos es mas rapido, por eso uso reverse para imprimir bien
-
-        where
-            movimientos = [U, D, L, R] 
-            movValidos = filter (isValidMove estadoActual) movimientos -- movimientos validos de los 4 posibles
-            estadosResultantes = map (applyMove estadoActual) movValidos --estados nuevos tras hacer las 4 direcciones
-            estadosNuevos = filter (`notElem` visitados) estadosResultantes --movimientos para no caer en bucle
-            nuevosCaminos = map (: caminoActual) estadosNuevos --unimos el camino con las distintas posibilidades
-        
+        bfs (caminoActual : restoCola) visitados 
+            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual) 
+            | otherwise = bfs nuevaCola nuevoVisitados
+            where
+                -- Sacamos el estado actual (el primero de la lista)
+                estadoActual = head caminoActual 
+                
+                -- Calculamos los movimientos
+                movimientos = [U, D, L, R] 
+                movValidos = filter (isValidMove estadoActual) movimientos 
+                estadosResultantes = map (applyMove estadoActual) movValidos 
+                estadosNuevos = filter (`notElem` visitados) estadosResultantes 
+                
+                -- Creamos los caminos nuevos pegando el estado nuevo al camino actual
+                nuevosCaminos = map (: caminoActual) estadosNuevos 
+                
+                -- Actualizamos la cola y los visitados
+                nuevaCola = restoCola ++ nuevosCaminos 
+                nuevoVisitados = visitados ++ estadosNuevos
 
 
     
