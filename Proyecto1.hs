@@ -61,9 +61,9 @@ solveWarehouse inicial = bfs [[inicial]] [inicial]
         -- bfs :: Cola -> Visitados -> Resultado
         bfs :: [[State]] -> [State] -> (Int, [State])
         bfs [] _ = (0, [])
-        bfs (caminoActual : restoCola) visitados 
+        bfs (caminoActual : resto) visitados 
             | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual) 
-            | otherwise = bfs nuevaCola nuevoVisitados
+            | otherwise = bfs nuevoResto nuevoVisitados
             where
                 -- Sacamos el estado actual (el primero de la lista)
                 estadoActual = head caminoActual 
@@ -78,7 +78,7 @@ solveWarehouse inicial = bfs [[inicial]] [inicial]
                 nuevosCaminos = map (: caminoActual) estadosNuevos 
                 
                 -- Actualizamos la cola y los visitados
-                nuevaCola = restoCola ++ nuevosCaminos 
+                nuevoResto = resto ++ nuevosCaminos 
                 nuevoVisitados = visitados ++ estadosNuevos
 
 

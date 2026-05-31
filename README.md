@@ -124,6 +124,16 @@ applyMove ((r1, r2), (c1, c2), cb) m
 
 ### Parte 4 - Mejor Solución
 
+Se implementó un algoritmo de búsqueda en anchura para hallar la solución más corta
+Para ello se mantiene una lista de listas de estados que representa los diferente caminos o secuencias de estados que se van generando con los distintos movimientos posibles y una lista de estados
+que representa los estados ya visitados.
+Tomando el estado actual se revisa si se ha llegado al final, en caso contrario se continúa la búsqueda,
+para esto se obtiene aprovechando *isValidMove*, los nuevos 
+caminos posibles y con esto los estados nuevos (se revisa no caer en un estado donde ya se estuvo)
+ a donde se puede ir desde el actual, con esto, añadimos los nuevos estados a las listas correspondientes, por 
+ un lado los estados donde nos podemos mover para no volver a caer en ellos y por otro los caminos resultantes
+ de los movimientos realizados.
+
 ```
 solveWarehouse :: State -> (Int, [State])
 solveWarehouse inicial = bfs [[inicial]] [inicial]
