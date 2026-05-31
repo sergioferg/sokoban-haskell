@@ -99,7 +99,64 @@ moveOffset L = (0, -1)
 moveOffset R = (0, 1)
 ```
 
-Esta se utiliza para calcular en donde se encontraria el robot en caso de moverse `(m1, m2) = moveOffset m / rf = (r1+m1, r2+m2)` y poder hacer chequeos, en caso de que rf se encuentre fuera
-del tablero se retorna false, en caso de que esta coincida con la caja objetivo, se chequea si esta puede ser movida (que la caja no sea empujada fuera del tablero, o que
+Esta se utiliza para calcular en donde se encontraria el robot en caso de moverse y poder hacer chequeos, en caso de que el movimiento a realizar se encuentre fuera
+del tablero se retorna false, o en caso de que este coincida con la caja objetivo, se chequea si esta puede ser movida (que la caja no sea empujada fuera del tablero, o que
 exista otra caja detras), esta misma logica se aplica a las cajas de bloqueo.
+
+### Parte 3 - Ejecución de Movimiento
+
+Se implementó la lógica para alterar el estado del almacén. Esta función toma el estado actual y aplica un
+movimiento, devolviendo el nuevo estado. **Se asume que el movimiento ya fue validado por isValidMove**.
+Recordando que si el Robot se mueve hacia una caja, la coordenada de esa caja también debe actualizarse.
+
+```
+applyMove :: State -> Move -> State
+applyMove ((r1, r2), (c1, c2), cb) m
+    | rf == c =  (rf, rf2, cb) 
+    | elem rf cb =  (rf, c, rf2 : filter (/= rf) cb) --elementos distintos a rf se quedan, el igual se reemplaza por rf2--
+    | otherwise = (rf, c, cb)
+    where
+        (m1, m2) = moveOffset m
+        rf = (r1+m1, r2+m2)
+        c = (c1, c2)
+        rf2 = (r1+(m1*2), r2+(m2*2))
+```
+
+### Parte 4 - Mejor Solución
+
+```
+solveWarehouse :: State -> (Int, [State])
+solveWarehouse inicial = bfs [[inicial]] [inicial]
+    where 
+        -- bfs :: Cola -> Visitados -> Resultado
+        bfs :: [[State]] -> [State] -> (Int, [State])
+        bfs [] _ = (0, [])
+        bfs (caminoActual : restoCola) visitados 
+            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual) 
+            | otherwise = bfs nuevaCola nuevoVisitados
+            where
+                -- Sacamos el estado actual (el primero de la lista)
+                estadoActual = head caminoActual 
+                
+                -- Calculamos los movimientos
+                movimientos = [U, D, L, R] 
+                movValidos = filter (isValidMove estadoActual) movimientos -- a donde puedo moverme
+                estadosResultantes = map (applyMove estadoActual) movValidos  
+                estadosNuevos = filter (`notElem` visitados) estadosResultantes 
+                
+                -- Creamos los caminos nuevos pegando el estado nuevo al camino actual
+                nuevosCaminos = map (: caminoActual) estadosNuevos 
+                
+                -- Actualizamos la cola y los visitados
+                nuevaCola = restoCola ++ nuevosCaminos 
+                nuevoVisitados = visitados ++ estadosNuevos
+```
+
+La función auxiliar `metaAlcanzada` chequea un estado dado, en caso de que en este estado (ya validado previamente) se encuentre la caja objetivo
+en la posicion (5,5) se retorna True, finalizando el bfs.
+
+```
+metaAlcanzada :: State -> Bool
+metaAlcanzada (_, coord, _) = coord == (5, 5)
+```
 
