@@ -56,7 +56,9 @@ metaAlcanzada :: State -> Bool
 metaAlcanzada (_, coord, _) = coord == (5, 5)
 
 solveWarehouse :: State -> (Int, [State])
-solveWarehouse inicial = bfs [[inicial]] [inicial]
+solveWarehouse (r, c, cb) 
+    | initialState r c cb == ((-1, -1), (-1, -1), []) = (0, []) --verificacion de estado correcto
+    | otherwise = bfs [[(r, c, cb)]] [(r, c, cb)]
     where 
         -- bfs :: Cola -> Visitados -> Resultado
         bfs :: [[State]] -> [State] -> (Int, [State])
