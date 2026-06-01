@@ -27,7 +27,7 @@ type State = (Coord, Coord, [Coord]) -- (Robot, CajaObjetivo, CajasDeBloqueo)
 
 Cuando se crea un nuevo tipo de dato personalizado usando data, haskell no sabe como
 imprimirlo ni como comparar para saber si 2 valores de ese tipo son iguales.
-Para evitar tener que programar esas reglas a mano, se utiliza la cláusula `deriving (Show, Eq)` al final de la declaración. 
+Para evitar tener que programar esas reglas a mano, se utiliza la cláusula `deriving (Show, Eq)` al final de la declaración.
 Esto le dice al compilador de Haskell que genere ese código automáticamente por ti.
 
 Eq: Le enseña a Haskell cómo comparar los elementos del tipo de dato.
@@ -59,12 +59,22 @@ outOfBounds c           = invalidState
 or (map outOfBounds cb) = invalidState
 ```
 
-También se chequeó que ninguna de las cajas se solapen entre si.
+Tambien utilizamos una segunda función auxiliar `hasDuplicates` que dado una lista de coordenadas
+chequea si existen duplicados dentro de ella para que no se solapen las cajas de bloqueo.
+
+```
+hasDuplicates :: [Coord] -> Bool
+hasDuplicates [] = False
+hasDuplicates (x:xs) = elem x xs || hasDuplicates xs
+```
+
+Con esto, se chequeó que ninguna de las cajas se solapen entre si.
 
 ```
 r == c                  = invalidState
 elem r cb               = invalidState
 elem c cb               = invalidState
+hasDuplicates cb        = invalidState
 ```
 
 ### Parte 2 - Validación de Movimientos
@@ -112,7 +122,7 @@ Recordando que si el Robot se mueve hacia una caja, la coordenada de esa caja ta
 ```
 applyMove :: State -> Move -> State
 applyMove ((r1, r2), (c1, c2), cb) m
-    | rf == c =  (rf, rf2, cb) 
+    | rf == c =  (rf, rf2, cb)
     | elem rf cb =  (rf, c, rf2 : filter (/= rf) cb) --elementos distintos a rf se quedan, el igual se reemplaza por rf2--
     | otherwise = (rf, c, cb)
     where
@@ -128,37 +138,37 @@ Se implementó un algoritmo de búsqueda en anchura para hallar la solución má
 Para ello se mantiene una lista de listas de estados que representa los diferente caminos o secuencias de estados que se van generando con los distintos movimientos posibles y una lista de estados
 que representa los estados ya visitados.
 Tomando el estado actual se revisa si se ha llegado al final, en caso contrario se continúa la búsqueda,
-para esto se obtiene aprovechando *isValidMove*, los nuevos 
+para esto se obtiene aprovechando _isValidMove_, los nuevos
 caminos posibles y con esto los estados nuevos (se revisa no caer en un estado donde ya se estuvo)
- a donde se puede ir desde el actual, con esto, añadimos los nuevos estados a las listas correspondientes, por 
- un lado los estados donde nos podemos mover para no volver a caer en ellos y por otro los caminos resultantes
- de los movimientos realizados.
+a donde se puede ir desde el actual, con esto, añadimos los nuevos estados a las listas correspondientes, por
+un lado los estados donde nos podemos mover para no volver a caer en ellos y por otro los caminos resultantes
+de los movimientos realizados.
 
 ```
 solveWarehouse :: State -> (Int, [State])
 solveWarehouse inicial = bfs [[inicial]] [inicial]
-    where 
+    where
         -- bfs :: Cola -> Visitados -> Resultado
         bfs :: [[State]] -> [State] -> (Int, [State])
         bfs [] _ = (0, [])
-        bfs (caminoActual : restoCola) visitados 
-            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual) 
+        bfs (caminoActual : restoCola) visitados
+            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual)
             | otherwise = bfs nuevaCola nuevoVisitados
             where
                 -- Sacamos el estado actual (el primero de la lista)
-                estadoActual = head caminoActual 
-                
+                estadoActual = head caminoActual
+
                 -- Calculamos los movimientos
-                movimientos = [U, D, L, R] 
+                movimientos = [U, D, L, R]
                 movValidos = filter (isValidMove estadoActual) movimientos -- a donde puedo moverme
-                estadosResultantes = map (applyMove estadoActual) movValidos  
-                estadosNuevos = filter (`notElem` visitados) estadosResultantes 
-                
+                estadosResultantes = map (applyMove estadoActual) movValidos
+                estadosNuevos = filter (`notElem` visitados) estadosResultantes
+
                 -- Creamos los caminos nuevos pegando el estado nuevo al camino actual
-                nuevosCaminos = map (: caminoActual) estadosNuevos 
-                
+                nuevosCaminos = map (: caminoActual) estadosNuevos
+
                 -- Actualizamos la cola y los visitados
-                nuevaCola = restoCola ++ nuevosCaminos 
+                nuevaCola = restoCola ++ nuevosCaminos
                 nuevoVisitados = visitados ++ estadosNuevos
 ```
 
@@ -169,4 +179,3 @@ en la posicion (5,5) se retorna True, finalizando el bfs.
 metaAlcanzada :: State -> Bool
 metaAlcanzada (_, coord, _) = coord == (5, 5)
 ```
-

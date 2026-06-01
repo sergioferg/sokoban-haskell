@@ -12,6 +12,10 @@ outOfBounds (x, y)
     | y < 0 || y > 5 = True
     | otherwise = False
 
+hasDuplicates :: [Coord] -> Bool
+hasDuplicates [] = False
+hasDuplicates (x:xs) = elem x xs || hasDuplicates xs
+
 initialState :: Coord -> Coord -> [Coord] -> State
 initialState r c cb
     | r == c                  = invalidState
@@ -20,6 +24,7 @@ initialState r c cb
     | outOfBounds r           = invalidState
     | outOfBounds c           = invalidState
     | or (map outOfBounds cb) = invalidState
+    | hasDuplicates cb        = invalidState
     | otherwise               = (r, c, cb)
         where invalidState = ((-1, -1), (-1, -1), [])
 
@@ -42,7 +47,7 @@ isValidMove ((r1, r2), c, cb) m
 
 applyMove :: State -> Move -> State
 applyMove ((r1, r2), (c1, c2), cb) m
-    | rf == c =  (rf, rf2, cb) 
+    | rf == c =  (rf, rf2, cb)
     | elem rf cb =  (rf, c, rf2 : filter (/= rf) cb) --elementos distintos a rf se quedan, el igual se reemplaza por rf2--
     | otherwise = (rf, c, cb)
     where
@@ -56,32 +61,29 @@ metaAlcanzada :: State -> Bool
 metaAlcanzada (_, coord, _) = coord == (5, 5)
 
 solveWarehouse :: State -> (Int, [State])
-solveWarehouse (r, c, cb) 
+solveWarehouse (r, c, cb)
     | initialState r c cb == ((-1, -1), (-1, -1), []) = (0, []) --verificacion de estado correcto
     | otherwise = bfs [[(r, c, cb)]] [(r, c, cb)]
-    where 
+    where
         -- bfs :: Cola -> Visitados -> Resultado
         bfs :: [[State]] -> [State] -> (Int, [State])
         bfs [] _ = (0, [])
-        bfs (caminoActual : resto) visitados 
-            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual) 
+        bfs (caminoActual : resto) visitados
+            | metaAlcanzada estadoActual = (length caminoActual - 1, reverse caminoActual)
             | otherwise = bfs nuevoResto nuevoVisitados
             where
                 -- Sacamos el estado actual (el primero de la lista)
-                estadoActual = head caminoActual 
-                
+                estadoActual = head caminoActual
+
                 -- Calculamos los movimientos
-                movimientos = [U, D, L, R] 
+                movimientos = [U, D, L, R]
                 movValidos = filter (isValidMove estadoActual) movimientos -- a donde puedo moverme
-                estadosResultantes = map (applyMove estadoActual) movValidos  
-                estadosNuevos = filter (`notElem` visitados) estadosResultantes 
-                
+                estadosResultantes = map (applyMove estadoActual) movValidos
+                estadosNuevos = filter (`notElem` visitados) estadosResultantes
+
                 -- Creamos los caminos nuevos pegando el estado nuevo al camino actual
-                nuevosCaminos = map (: caminoActual) estadosNuevos 
-                
+                nuevosCaminos = map (: caminoActual) estadosNuevos
+
                 -- Actualizamos la cola y los visitados
-                nuevoResto = resto ++ nuevosCaminos 
+                nuevoResto = resto ++ nuevosCaminos
                 nuevoVisitados = visitados ++ estadosNuevos
-
-
-    
